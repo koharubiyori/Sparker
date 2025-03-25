@@ -7,7 +7,7 @@ import androidx.navigation.NavHostController
 import koharubiyori.sparker.component.commonDialog.CommonAlertDialogRef
 import koharubiyori.sparker.component.commonDialog.CommonRadioDialogRef
 
-// 专门存放全局延后赋值的变量
+// To place lateinit variables for using in global
 @SuppressLint("StaticFieldLeak")
 object Globals {
   lateinit var activity: ComponentActivity

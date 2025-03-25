@@ -1,6 +1,6 @@
 package koharubiyori.sparker.screen.home.component
 
-import koharubiyori.sparker.screen.scanDevices.ScanDevicesArguments
+import koharubiyori.sparker.screen.scanDevices.ScanDevicesRouteArguments
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -11,14 +11,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Save
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Save
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -52,7 +48,6 @@ import koharubiyori.sparker.store.DeviceConfigStore
 import koharubiyori.sparker.store.DeviceConnectionStore
 import koharubiyori.sparker.util.PlaceholderTransformation
 import koharubiyori.sparker.util.ScanResult
-import koharubiyori.sparker.util.debugPrint
 import koharubiyori.sparker.util.navigateByArguments
 import koharubiyori.sparker.util.toast
 import kotlinx.coroutines.CompletableDeferred
@@ -149,7 +144,7 @@ fun BottomSheetToAddDevice(
             onClick = {
               localCoroutine.launch {
                 CompletableDeferred<ScanResult?>().apply {
-                  Globals.navController.navigateByArguments(ScanDevicesArguments(this))
+                  Globals.navController.navigateByArguments(ScanDevicesRouteArguments(this))
                   val result = await() ?: return@apply
                   state.fillWithIpScanResult(result)
                 }

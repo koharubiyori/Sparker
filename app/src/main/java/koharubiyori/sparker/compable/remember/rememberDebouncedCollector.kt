@@ -17,7 +17,7 @@ fun <T> rememberDebouncedManualEffector(
 ): DebouncedManualEffector<T> {
   val mutableStateFlow = remember { MutableStateFlow<Any>(EmptyValue) }
 
-  LaunchedEffect(true) {
+  LaunchedEffect(Unit) {
     mutableStateFlow
       .debounce(delayMs)
       .collect {

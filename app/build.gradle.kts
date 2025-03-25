@@ -12,12 +12,28 @@ android {
 
   defaultConfig {
     applicationId = "koharubiyori.sparker"
-    minSdk = 24
+    minSdk = 30
     targetSdk = 35
     versionCode = 1
     versionName = "1.0"
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+    ndkVersion = "27.2.12479018"
+
+    ndk {
+      val jniLibsDirectory = File(project.projectDir, "src/main/jniLibs")
+      if (File(jniLibsDirectory, "arm64-v8a/libfreerdp3.so").exists()) abiFilters.add("arm64-v8a")
+      if (File(jniLibsDirectory, "armeabi-v7a/libfreerdp3.so").exists()) abiFilters.add("armeabi-v7a")
+      if (File(jniLibsDirectory, "x86_64/libfreerdp3.so").exists()) abiFilters.add("x86_64")
+      if (File(jniLibsDirectory, "x86/libfreerdp3.so").exists()) abiFilters.add("x86")
+    }
+
+    externalNativeBuild {
+      cmake {
+        arguments.add("-DWITH_CLIENT_CHANNELS=ON")
+      }
+    }
   }
 
   splits {
@@ -26,7 +42,7 @@ android {
       isEnable = true
       isUniversalApk = false
       //noinspection ChromeOsAbiSupport
-      include("arm64-v8a")
+//      include("arm64-v8a", "armeabi-v7a")
     }
   }
 
@@ -46,6 +62,10 @@ android {
 //      isShrinkResources = true
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
     }
+
+    debug {
+      isJniDebuggable = true
+    }
   }
   compileOptions {
     sourceCompatibility = JavaVersion.VERSION_11
@@ -56,6 +76,11 @@ android {
   }
   buildFeatures {
     compose = true
+  }
+  externalNativeBuild {
+    cmake {
+      path = file("src/main/cpp/CMakeLists.txt")
+    }
   }
 }
 

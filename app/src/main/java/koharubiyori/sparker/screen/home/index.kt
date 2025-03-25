@@ -2,6 +2,7 @@ package koharubiyori.sparker.screen.home
 
 import StyledPullToRefreshBox
 import android.annotation.SuppressLint
+import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -30,12 +31,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,16 +50,19 @@ import koharubiyori.sparker.component.EmptyContent
 import koharubiyori.sparker.component.TopAppBarIcon
 import koharubiyori.sparker.component.styled.StyledTopAppBar
 import koharubiyori.sparker.component.styled.TopAppBarTitle
+import koharubiyori.sparker.jni.JniFreeRDP
 import koharubiyori.sparker.screen.home.component.BottomSheetForDeviceActions
 import koharubiyori.sparker.screen.home.component.BottomSheetToAddDevice
 import koharubiyori.sparker.store.DeviceConfig
 import koharubiyori.sparker.store.DeviceConfigStore
 import koharubiyori.sparker.store.DeviceConnectionStore
 import koharubiyori.sparker.util.LoadStatus
-import koharubiyori.sparker.util.NetworkUtil
+import koharubiyori.sparker.util.debugPrint
 import koharubiyori.sparker.util.vibrate
 import kotlinx.coroutines.launch
-import timber.log.Timber
+import androidx.core.graphics.createBitmap
+import koharubiyori.sparker.screen.remote.RemoteRouteArguments
+import koharubiyori.sparker.util.navigateByArguments
 
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -69,12 +71,6 @@ fun HomeScreen() {
   val model: HomeScreenModel = hiltViewModel()
   val coroutine = rememberCoroutineScope()
   val deviceConfigs by DeviceConfigStore.deviceConfigs.collectAsState(emptyList())
-
-//  LaunchedEffect(true) {
-//    DeviceConfigStore.deviceConfigs.collect {
-//      Timber.w("deviceConfigs:" + deviceConfigs.size)
-//    }
-//  }
 
   BackHandler(model.bottomSheetToAddDeviceState.visible) {
     model.bottomSheetToAddDeviceState.visible = false

@@ -2,6 +2,7 @@ package koharubiyori.sparker.util
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -13,9 +14,13 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.changedToUp
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastAll
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 fun Modifier.sideBorder(
   side: BorderSide,
@@ -37,14 +42,17 @@ fun Modifier.sideBorder(
           Offset(0f, -halfWidth),
           Offset(size.width, -halfWidth)
         )
+
         BorderSide.LEFT -> arrayOf(
           Offset(-halfWidth, 0f),
           Offset(-halfWidth, size.height)
         )
+
         BorderSide.RIGHT -> arrayOf(
           Offset(size.width + halfWidth, 0f),
           Offset(size.width + halfWidth, size.height)
         )
+
         BorderSide.BOTTOM -> arrayOf(
           Offset(0f, size.height + halfWidth),
           Offset(size.width, size.height + halfWidth)
@@ -67,7 +75,8 @@ enum class BorderSide {
 inline fun Modifier.noRippleClickable(
   crossinline onClick: () -> Unit
 ) = composed {
-  clickable(indication = null,
+  clickable(
+    indication = null,
     interactionSource = remember { MutableInteractionSource() }) {
     onClick()
   }
@@ -80,10 +89,23 @@ fun Modifier.visibility(visible: Boolean): Modifier {
 fun Modifier.autoFocus(delayMs: Long = 0) = composed {
   val focusRequester = remember { FocusRequester() }
 
-  LaunchedEffect(true) {
+  LaunchedEffect(Unit) {
     delay(delayMs)
     focusRequester.requestFocus()
   }
 
   focusRequester(focusRequester)
+}
+
+fun Modifier.onAllFingerRelease(
+  block: () -> Unit
+): Modifier {
+  return this.pointerInput(Unit) {
+    awaitPointerEventScope {
+      while (true) {
+        val event = awaitPointerEvent()
+        if (event.changes.fastAll { it.changedToUp() }) block()
+      }
+    }
+  }
 }

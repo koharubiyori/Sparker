@@ -25,7 +25,7 @@ fun AnimatedAppearing(
 ) {
   var visible by remember { mutableStateOf(false) }
 
-  LaunchedEffect(true) {
+  LaunchedEffect(Unit) {
     visible = true
   }
 

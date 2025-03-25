@@ -6,7 +6,7 @@ import koharubiyori.sparker.util.ScanResult
 import kotlinx.coroutines.CompletableDeferred
 
 @RouteName("scanDevices")
-class ScanDevicesArguments (
+class ScanDevicesRouteArguments (
   val returner: CompletableDeferred<ScanResult?>,
 ) : RouteArguments() {
   constructor() : this(CompletableDeferred())

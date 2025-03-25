@@ -57,14 +57,13 @@ import koharubiyori.sparker.util.NetworkUtil
 import koharubiyori.sparker.util.ScanResult
 import koharubiyori.sparker.util.toast
 import koharubiyori.sparker.util.tryApproachingHostServer
-import koharubiyori.sparker.util.tryGettingMacAddressFromHostServer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ScanDevicesScreen(arguments: ScanDevicesArguments) {
+fun ScanDevicesScreen(arguments: ScanDevicesRouteArguments) {
   val model: ScanDevicesScreenModel = hiltViewModel()
   val coroutine = rememberCoroutineScope()
   val wifiState = LocalWifiState.current
@@ -74,11 +73,11 @@ fun ScanDevicesScreen(arguments: ScanDevicesArguments) {
     Globals.navController.popBackStack()
   }
 
-  LaunchedEffect(true) {
+  LaunchedEffect(Unit) {
     model.routeArguments = arguments
   }
 
-  LaunchedEffect(true) {
+  LaunchedEffect(Unit) {
     var macFindingAlertChecked = SettingsStore.reminder.getValue { macFindingAlertChecked }.first()
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !macFindingAlertChecked) {
       delay(1000)
@@ -165,7 +164,7 @@ private fun ComposedDeviceItem(
   var hostApproachStatus by remember { mutableStateOf(LoadStatus.INITIAL) }
   var hostAppRunning by remember { mutableStateOf(false) }
 
-  LaunchedEffect(true) {
+  LaunchedEffect(Unit) {
     if (LoadStatus.isAllLoaded(hostApproachStatus)) return@LaunchedEffect
     hostApproachStatus = LoadStatus.LOADING
     val result = tryApproachingHostServer(deviceScanResult.ip)

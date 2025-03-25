@@ -251,7 +251,7 @@ private fun createMaskContainer(
   return {
     val animationValue = remember { Animatable(if (reversed) 1f else 0f) }
 
-    LaunchedEffect(true) {
+    LaunchedEffect(Unit) {
       animationValue.animateTo(
         animationSpec = animationSpec,
         targetValue = if (reversed) 0f else 1f

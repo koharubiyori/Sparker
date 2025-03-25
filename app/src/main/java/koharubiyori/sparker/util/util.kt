@@ -4,6 +4,11 @@ import android.content.Context
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.view.RoundedCorner
+import androidx.compose.runtime.State
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.input.pointer.PointerInputScope
 import koharubiyori.sparker.Globals
 import koharubiyori.sparker.R
 import koharubiyori.sparker.request.HttpException
@@ -16,10 +21,10 @@ annotation class ProguardIgnore
 
 private const val dividerLine = "----------------------"
 
-fun debugPrint(vararg value: Any?) {
-  Timber.w("$dividerLine DEBUG PRINT START $dividerLine")
+fun debugPrint(vararg value: Any?, divider: Boolean = false) {
+  if (divider) Timber.w("$dividerLine DEBUG PRINT START $dividerLine")
   Timber.w(value.joinToString(separator = ", ") { it.toString() })
-  Timber.w("$dividerLine DEBUG PRINT END $dividerLine")
+  if (divider) Timber.w("$dividerLine DEBUG PRINT END $dividerLine")
 }
 
 suspend fun <T> toastExceptionHandlerForRequest(tryRun: suspend () -> T) {
@@ -52,4 +57,9 @@ fun vibrate() {
 fun isFailedRequest(ex: Exception) = when(ex) {
   is SocketTimeoutException, is ConnectException, is HttpException -> true
   else -> false
+}
+
+fun getScreenRoundedCornerRadius(position: Int = RoundedCorner.POSITION_TOP_LEFT): Int {
+  if (Build.VERSION.SDK_INT < 31) return 0
+  return Globals.activity.window.decorView.rootWindowInsets.getRoundedCorner(position)?.radius ?: 0
 }

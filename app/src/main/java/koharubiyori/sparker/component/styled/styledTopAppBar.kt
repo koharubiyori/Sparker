@@ -47,7 +47,7 @@ fun StyledTopAppBar(
   StatusBar(
     mode = statusBarMode,
 //    sticky = statusBarSticky,
-    backgroundColor = Color.Transparent,
+//    backgroundColor = Color.Transparent,
     darkIcons = statusBarDarkIcons
   )
 

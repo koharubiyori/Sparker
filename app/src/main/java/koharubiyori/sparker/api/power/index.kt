@@ -16,4 +16,10 @@ object PowerApi {
       body = reqBody
     )
   }
+
+  suspend fun unlock() {
+    hostRequest<Unit>(
+      url = "/power/unlock"
+    )
+  }
 }
