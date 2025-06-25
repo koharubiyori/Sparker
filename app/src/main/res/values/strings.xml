@@ -1,0 +1,94 @@
+<resources>
+    <string name="app_name">Sparker</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="notice">Notice</string>
+    <string name="ok">OK</string>
+    <string name="shutdown">Shutdown</string>
+    <string name="sleep">Sleep</string>
+    <string name="hibernate">Hibernate</string>
+    <string name="reboot">Reboot</string>
+    <string name="toggle">Toggle</string>
+    <string name="select">Select</string>
+    <string name="timeout">Timeout</string>
+    <string name="finding">Finding</string>
+    <string name="actions">Actions</string>
+    <string name="power">Power</string>
+    <string name="off">Off</string>
+    <string name="edit">Edit</string>
+    <string name="delete">Delete</string>
+    <string name="offline">Offline</string>
+    <string name="pair">Pair</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="unlock">Unlock</string>
+    <string name="lock">Lock</string>
+    <string name="experimental">Experimental</string>
+
+    <!-- Words(names are equal with their contents or translations) -->
+    <string name="no_devices">No Devices</string>
+    <string name="scan_devices">Scan Devices</string>
+    <string name="no_data">No Data</string>
+    <string name="invalid_format">Invalid Format</string>
+    <string name="not_found">Not Found</string>
+    <string name="device_name">Device Name</string>
+    <string name="host_name">Host Name</string>
+    <string name="mac_address">MAC Address</string>
+    <string name="power_on">Power On</string>
+    <string name="power_off">Power Off</string>
+    <string name="network_error">Network Error</string>
+    <string name="wake">Wake</string>
+    <string name="default_power_off_action">Default Power Off action</string>
+    <string name="item_click_action">Item Click Action</string>
+    <string name="fast_boot">Fast Boot</string>
+    <string name="force_shutdown">Force Shutdown</string>
+    <string name="request_timeout">Request Timeout</string>
+    <string name="go_to_edit">Go to edit</string>
+    <string name="add_device">Add Device</string>
+    <string name="edit_device">Edit Device</string>
+    <string name="local_device_timeout">Local Device Timeout</string>
+    <string name="remote_device_timeout">Remote Device Timeout</string>
+    <string name="wake_on_lan_port">Wake-On-LAN Port</string>
+    <string name="pairing_code">Pairing Code</string>
+    <string name="pair_device">Pair Device</string>
+    <string name="dynamic_power_actions">Dynamic Power Actions</string>
+
+    <!-- Sentences(names begin with 's') -->
+    <string name="s_woke">Woke!</string>
+    <string name="s_locked">Locked!</string>
+    <string name="s_unlocked">Unlocked!</string>
+    <string name="s_sent">Sent!</string>
+    <string name="s_name_already_exists">The name already exists</string>
+    <string name="s_request_connect_to_wifi">Please connect to a Wi-Fi network first</string>
+    <string name="s_click_to_open_wifi_settings">Click to open Wi-Fi settings</string>
+    <string name="s_required_field">This filed cannot be empty</string>
+    <string name="s_device_name_description">Name shown in the device list</string>
+    <string name="s_host_name_description">Normally 127.0.xx.xx</string>
+    <string name="s_port_description">Optional, default to 7 or 9</string>
+    <string name="s_mac_address_description">Optional, like c8:3a:xx:xx:xx:xx</string>
+    <string name="s_mac_finding_alert">Due to the security policy updates in Android 13 and above, the device\'s MAC address is no longer accessible.</string>
+    <string name="s_default_power_off_action_description">The actual behavior when power-on action is executed.</string>
+    <string name="s_item_click_action_description">When a device item is clicked in the device list.</string>
+    <string name="s_force_shutdown_warning">Unsaved data may be lost after shutdown.</string>
+    <string name="s_cannot_wake_for_missing_mac">It is impossible to wake the device due to the missing MAC address in its configuration. You can go to edit the device configuration or try again after downloading and launching the Sparker app for Windows.</string>
+    <string name="s_device_offline">The device is offline</string>
+    <string name="s_device_without_server">Host app is not running on the device</string>
+    <string name="s_successful_edit">Succeeded to edit</string>
+    <string name="s_disabled_hibernate_waring">Instruction cannot be sent because hibernate function of this device is not enabled.</string>
+    <string name="s_to_pair_device_after_adding_host">A device running the host app was just added. Would you like to pair with it for remote control?</string>
+    <string name="s_device_pairing_dialog_title">Enter your pairing code</string>
+    <string name="s_successful_device_pairing_message">Succeed to pair</string>
+    <string name="s_invalid_username_or_password_message">The username or password is invalid</string>
+    <string name="s_invalid_pairing_code_message">Pairing code is incorrect or expired</string>
+    <string name="s_pairing_code_input_helping_text">The pairing code is 4 digits long.</string>
+    <string name="s_username_description">The account name of your device</string>
+    <string name="s_password_description">The account password of your device</string>
+    <string name="s_unauthorized_message">Unauthorized token. Please pair device again.</string>
+    <string name="s_dynamic_power_actions_description">The power actions will be displayed based on the device state.</string>
+    <string name="s_device_not_paired">The device is not paired</string>
+
+    <!-- format strings -->
+    <string name="f_after_seconds">After %1$ss</string>
+    <string name="f_after_minutes">After %1$sm</string>
+    <string name="f_check_to_delete_device">Are you sure you want to delete %1$s?</string>
+</resources>
