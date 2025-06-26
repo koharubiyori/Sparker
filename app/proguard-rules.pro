@@ -42,7 +42,7 @@
 }
 
 # Classes annotated with @ProguardIgnore will not be obfuscated
--keepnames @koharubiyori.sparker.util.ProguardIgnore class * { *; }
+-keep @koharubiyori.sparker.util.ProguardIgnore class * { *; }
 
 -keepnames public class * extends koharubiyori.sparker.util.RouteArguments { *; }
 -keep public class * extends koharubiyori.sparker.store.Settings { *; }
