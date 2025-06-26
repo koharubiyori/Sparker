@@ -1,3 +1,4 @@
+import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import com.google.protobuf.gradle.id
 import java.util.Properties
 import java.io.FileInputStream
@@ -85,6 +86,13 @@ android {
 
     debug {
       isJniDebuggable = true
+    }
+
+    getByName("release") {
+      configure<CrashlyticsExtension> {
+//        nativeSymbolUploadEnabled = false
+        mappingFileUploadEnabled = true
+      }
     }
   }
   compileOptions {
