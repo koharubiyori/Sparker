@@ -69,11 +69,39 @@ fun Exception.tryToastAsRequestException(): Boolean {
   }
 }
 
-fun vibrate() {
-  val vibrator = Globals.context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-  if (Build.VERSION.SDK_INT >= 26) {
-    vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
+enum class VibrationType {
+  Click,
+  LongPress,
+  Success,
+  Error,
+  Custom
+}
+
+fun vibrate(type: VibrationType = VibrationType.Click) {
+  val vibrator = Globals.context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
+  if (!vibrator.hasVibrator()) return
+
+  val effect = when (type) {
+    VibrationType.Click ->
+      VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE)
+
+    VibrationType.LongPress ->
+      VibrationEffect.createOneShot(70, VibrationEffect.DEFAULT_AMPLITUDE)
+
+    VibrationType.Success ->
+      VibrationEffect.createWaveform(longArrayOf(0, 40, 50, 40), -1)
+
+    VibrationType.Error ->
+      VibrationEffect.createWaveform(longArrayOf(0, 30, 40, 30, 50, 60), -1)
+
+    VibrationType.Custom ->
+      VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE)
+  }
+
+  if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    vibrator.vibrate(effect)
   } else {
+    @Suppress("DEPRECATION")
     vibrator.vibrate(50)
   }
 }

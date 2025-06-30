@@ -59,6 +59,7 @@ import koharubiyori.sparker.store.DeviceConfig
 import koharubiyori.sparker.store.DeviceConfigStore
 import koharubiyori.sparker.util.DeviceStateCenter
 import koharubiyori.sparker.util.LoadStatus
+import koharubiyori.sparker.util.VibrationType
 import koharubiyori.sparker.util.debugPrint
 import koharubiyori.sparker.util.vibrate
 import kotlinx.coroutines.launch
@@ -124,7 +125,7 @@ fun HomeScreen() {
                   deviceConfig = item,
                   onClick = { coroutine.launch { model.handleItemClick(item) } },
                   onLongClick = {
-                    vibrate()
+                    vibrate(VibrationType.LongPress)
                     coroutine.launch {
                       model.bottomSheetForDeviceActionsState.show(item)
                     }
