@@ -2,6 +2,7 @@ package koharubiyori.sparker.webSocket
 
 import koharubiyori.sparker.webSocket.hostMessage.handleRawHostMessage
 import koharubiyori.sparker.store.DeviceConfig
+import koharubiyori.sparker.store.DeviceConfigStore
 import koharubiyori.sparker.util.DeviceStateCenter
 import koharubiyori.sparker.util.globalDefaultCoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,36 +22,37 @@ private class HostWebSocketListener(
   val connection: WebSocketConnection,
 ) : WebSocketListener() {
   override fun onOpen(webSocket: WebSocket, response: Response) {
-    Timber.i("[WebSocket] ${connection.deviceConfig.name}: Connection Opened!")
+    Timber.i("[WebSocket] ${deviceConfig.name}: Connection Opened!")
   }
 
   override fun onMessage(webSocket: WebSocket, bytes: ByteString) {
-    Timber.i("[WebSocket] ${connection.deviceConfig.name}: Received message: $bytes")
+    Timber.i("[WebSocket] ${deviceConfig.name}: Received message: $bytes")
 //    connection.run { handleRawHostMessage(connection, bytes) }
   }
 
   override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-    Timber.e(t, "[WebSocket] ${connection.deviceConfig.name}: Failed!")
+    Timber.e(t, "[WebSocket] ${deviceConfig.name}: Failed!")
     globalDefaultCoroutineScope.launch {
-      DeviceStateCenter.testDeviceConnectionState(deviceConfig)
+      DeviceStateCenter.testDeviceConnectionState(deviceConfig.name)
     }
   }
 
   override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-    Timber.i("[WebSocket] ${connection.deviceConfig.name}: Connection Closed!")
+    Timber.i("[WebSocket] ${deviceConfig.name}: Connection Closed!")
     globalDefaultCoroutineScope.launch {
-      DeviceStateCenter.testDeviceConnectionState(deviceConfig)
+      DeviceStateCenter.testDeviceConnectionState(deviceConfig.name)
     }
   }
 }
 
 class WebSocketConnection(
   val url: String,
-  val deviceConfig: DeviceConfig
+  val deviceName: String
 ) {
   private lateinit var webSocket: WebSocket
 
   suspend fun connect() = withContext(Dispatchers.IO) {
+    val deviceConfig = DeviceConfigStore.getConfigByName(deviceName)!!
     val client = OkHttpClient.Builder()
       .connectTimeout(5, TimeUnit.SECONDS)
       .readTimeout(0, TimeUnit.MILLISECONDS)

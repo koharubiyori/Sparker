@@ -159,7 +159,7 @@ fun BottomSheetToPairDevice(
 
 class BottomSheetToPairDeviceState {
   var visible by mutableStateOf(false)
-  var deviceConfig by mutableStateOf<DeviceConfig?>(null)
+  var deviceName by mutableStateOf<String?>(null)
 
   var pairingCode by mutableStateOf("")
   var username by mutableStateOf("")
@@ -173,8 +173,8 @@ class BottomSheetToPairDeviceState {
     TextFields.PASSWORD to Ref(),
   )
 
-  suspend fun show(deviceConfig: DeviceConfig) {
-    this.deviceConfig = deviceConfig
+  suspend fun show(deviceName: String) {
+    this.deviceName = deviceName
     visible = true
     getPairingCode()
   }
@@ -193,7 +193,7 @@ class BottomSheetToPairDeviceState {
   suspend fun getPairingCode() {
     try {
       @SuppressLint("HardwareIds")
-      DeviceStateCenter.deviceScope(deviceConfig!!) {
+      DeviceStateCenter.deviceScope(deviceName!!) {
         deviceApi.getPairingCode(GetPairingCodeReq(
           sessionId = Settings.Secure.getString(Globals.context.contentResolver, Settings.Secure.ANDROID_ID),
         ))
@@ -210,7 +210,7 @@ class BottomSheetToPairDeviceState {
     try {
       @SuppressLint("HardwareIds")
       val androidId = Settings.Secure.getString(Globals.context.contentResolver, Settings.Secure.ANDROID_ID)
-      val res = DeviceStateCenter.deviceScope(deviceConfig!!) {
+      val res = DeviceStateCenter.deviceScope(deviceName!!) {
         deviceApi.pair(PairReq(
           deviceId = androidId,
           pairingCode = pairingCode,
@@ -220,9 +220,10 @@ class BottomSheetToPairDeviceState {
           password = password
         ))
       }
-      val newDeviceConfig = deviceConfig!!.copy(token = res.token)
-      DeviceConfigStore.modifyConfig(deviceConfig!!.name, newDeviceConfig)
-      DeviceStateCenter.refreshDeviceState(newDeviceConfig)
+      val currentDeviceConfig = DeviceConfigStore.getConfigByName(deviceName!!)
+      val newDeviceConfig = currentDeviceConfig!!.copy(token = res.token)
+      DeviceConfigStore.modifyConfig(currentDeviceConfig.name, newDeviceConfig)
+      DeviceStateCenter.refreshDeviceState(deviceName!!)
       hide()
       toast(Globals.context.getString(R.string.s_successful_device_pairing_message))
     } catch (ex: HostException) {

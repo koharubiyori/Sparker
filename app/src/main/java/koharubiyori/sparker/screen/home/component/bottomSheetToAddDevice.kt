@@ -22,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -204,18 +203,19 @@ class BottomSheetToAddDeviceState {
 
   val editMode @Composable get() = edit != null
 
-  fun show(
-    edit: DeviceConfig? = null,
+  suspend fun show(
+    deviceConfigNameToEdit: String? = null,
   ) {
-    edit?.let {
-      deviceName = it.name
-      hostName = it.hostName
-      port = it.wakeOnLanPort?.let { it.toString() } ?: ""
-      macAddress = it.macAddress ?: ""
+    if (deviceConfigNameToEdit != null) {
+      val deviceConfig = DeviceConfigStore.getConfigByName(deviceConfigNameToEdit)!!
+      deviceName = deviceConfig.name
+      hostName = deviceConfig.hostName
+      port = deviceConfig.wakeOnLanPort?.let { it.toString() } ?: ""
+      macAddress = deviceConfig.macAddress ?: ""
+      this.edit = deviceConfig
     }
 
     visible = true
-    this.edit = edit
   }
 
   suspend fun hide() = coroutineScope {
@@ -252,12 +252,12 @@ class BottomSheetToAddDeviceState {
         DeviceConfigStore.addConfig(deviceConfig)
       } else {
         DeviceConfigStore.modifyConfig(edit!!.name, deviceConfig)
-        DeviceStateCenter.unregisterDevice(edit!!)
+        DeviceStateCenter.unregisterDevice(edit!!.name)
         edit = null
         toast(Globals.context.getString(R.string.s_successful_edit))
       }
 
-      DeviceStateCenter.registerDevice(deviceConfig)
+      DeviceStateCenter.registerDevice(deviceConfig.name)
     }
 
     hide()

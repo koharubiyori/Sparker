@@ -70,14 +70,7 @@ import kotlinx.coroutines.launch
 fun HomeScreen() {
   val model: HomeScreenModel = hiltViewModel()
   val coroutine = rememberCoroutineScope()
-//  var deviceConfigs by remember { mutableStateOf(emptyList<DeviceConfig>()) }
-  // When using the following code, the screen will not update when deviceConfigs is added. Why?
   val deviceConfigs by DeviceConfigStore.deviceConfigs.collectAsStateWithLifecycle(emptyList())
-
-  debugPrint("deviceConfigs", deviceConfigs.size)
-//  LaunchedEffect(true) {
-//    DeviceConfigStore.deviceConfigs.collect { deviceConfigs = it }
-//  }
 
   BackHandler(model.bottomSheetToAddDeviceState.visible) {
     model.bottomSheetToAddDeviceState.visible = false
@@ -123,11 +116,11 @@ fun HomeScreen() {
               for (item in deviceConfigs) {
                 ComposedDeviceItem(
                   deviceConfig = item,
-                  onClick = { coroutine.launch { model.handleItemClick(item) } },
+                  onClick = { coroutine.launch { model.handleItemClick(item.name) } },
                   onLongClick = {
                     vibrate(VibrationType.LongPress)
                     coroutine.launch {
-                      model.bottomSheetForDeviceActionsState.show(item)
+                      model.bottomSheetForDeviceActionsState.show(item.name)
                     }
                   }
                 )
@@ -148,7 +141,7 @@ fun HomeScreen() {
               defaultElevation = 2.dp,
             ),
             onClick = {
-              model.bottomSheetToAddDeviceState.show()
+              coroutine.launch { model.bottomSheetToAddDeviceState.show() }
             }
           ) {
             Icon(Icons.Filled.Add, null)

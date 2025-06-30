@@ -38,7 +38,7 @@ object WebSocketConnectionCenter {
       val deviceConfig = DeviceConfigStore.deviceConfigs.first().first { deviceConfig -> deviceConfig.name == it.key }
       val hostUrl = ActiveDeviceScope(deviceConfig, it.value).hostUrl
       val webSocketUrl = URI.create(hostUrl).resolve(webSocketPath).toWebSocketURI().toString()
-      val connection = WebSocketConnection(webSocketUrl, deviceConfig)
+      val connection = WebSocketConnection(webSocketUrl, deviceConfig.name)
       webSocketConnectionMap[it.key] = connection
       Timber.i("Trying connect to $webSocketUrl ...")
       connection.connect()

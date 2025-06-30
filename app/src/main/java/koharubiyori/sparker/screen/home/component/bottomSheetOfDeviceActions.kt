@@ -67,13 +67,14 @@ import koharubiyori.sparker.component.commonDialog.ButtonConfig
 import koharubiyori.sparker.component.commonDialog.CommonAlertDialogProps
 import koharubiyori.sparker.screen.home.HomeScreenModel
 import koharubiyori.sparker.screen.settings.PowerOffAction
-import koharubiyori.sparker.store.DeviceConfig
 import koharubiyori.sparker.store.DeviceConfigStore
 import koharubiyori.sparker.store.SettingsStore
 import koharubiyori.sparker.util.DeviceStateCenter
 import koharubiyori.sparker.util.toast
 import koharubiyori.sparker.util.vibrate
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -87,7 +88,7 @@ fun BottomSheetForDeviceActions(
   LaunchedEffect(state.visible) {
     if (!state.visible) return@LaunchedEffect
     testingDeviceConnection = true
-    DeviceStateCenter.testDeviceConnectionState(state.deviceConfig!!)
+    DeviceStateCenter.testDeviceConnectionState(state.deviceName!!)
     testingDeviceConnection = false
   }
 
@@ -139,11 +140,11 @@ fun BottomSheetForDeviceActions(
 
 class BottomSheetForDeviceActionsState {
   var visible by mutableStateOf(false)
-  var deviceConfig: DeviceConfig? = null
+  var deviceName: String? = null
 
-  fun show(deviceConfig: DeviceConfig) {
+  fun show(deviceName: String) {
     visible = true
-    this.deviceConfig = deviceConfig
+    this.deviceName = deviceName
   }
 
   fun hide() {
@@ -219,7 +220,7 @@ private fun ComposedHeader(
   state: BottomSheetForDeviceActionsState,
 ) {
   val model: HomeScreenModel = hiltViewModel()
-  val coroutine = rememberLocalCoroutineScope()
+  val localCoroutine = rememberLocalCoroutineScope()
   Row(
     modifier = Modifier
       .fillMaxWidth(),
@@ -240,15 +241,15 @@ private fun ComposedHeader(
       onClick = {
         Globals.commonAlertDialog.show(CommonAlertDialogProps(
           content = {
-            Text(stringResource(R.string.f_check_to_delete_device, state.deviceConfig!!.name))
+            Text(stringResource(R.string.f_check_to_delete_device, state.deviceName!!))
           },
           secondaryButton = ButtonConfig.cancelButton(),
           onPrimaryButtonClick = {
-            coroutine.launch {
+            localCoroutine.launch {
               state.hide()
               delay(500)
-              DeviceConfigStore.removeConfig(state.deviceConfig!!.name)
-              DeviceStateCenter.unregisterDevice(state.deviceConfig!!)
+              DeviceConfigStore.removeConfig(state.deviceName!!)
+              DeviceStateCenter.unregisterDevice(state.deviceName!!)
             }
           }
         ))
@@ -289,7 +290,9 @@ private fun ComposedHeader(
       ),
       onClick = {
         state.hide()
-        model.bottomSheetToAddDeviceState.show(state.deviceConfig)
+        localCoroutine.launch {
+          model.bottomSheetToAddDeviceState.show(state.deviceName)
+        }
       }
     ) {
       Row(
@@ -320,17 +323,20 @@ private fun ComposedActionButtons(
   val model: HomeScreenModel = hiltViewModel()
   val localCoroutine = rememberLocalCoroutineScope()
   val preferenceSettings by SettingsStore.preference.getValue { this }.collectAsStateWithLifecycle(null)
+  val deviceConfig by DeviceConfigStore.getConfigFlowByNameOrNull(state.deviceName).collectAsStateWithLifecycle(null)
 
   var lockButtonLoading by remember { mutableStateOf(false) }
   var unlockButtonLoading by remember { mutableStateOf(false) }
-  val deviceState = state.deviceConfig?.let { DeviceStateCenter.composableStateMap[it.name] }
+  val deviceState = state.deviceName?.let { DeviceStateCenter.composableStateMap[it] }
+
+  if (deviceConfig == null) return
 
   val buttons = object {
     val wake = @Composable {
       ComposedButton(
         text = stringResource(R.string.wake),
         icon = Icons.Rounded.Bolt,
-        onClick = { localCoroutine.launch { model.powerOn(state.deviceConfig!!) } }
+        onClick = { localCoroutine.launch { model.powerOn(state.deviceName!!) } }
       )
     }
     val pair = @Composable {
@@ -341,7 +347,7 @@ private fun ComposedActionButtons(
           if (deviceState?.serverOnline != true) return@ComposedButton toast(Globals.context.getString(R.string.s_device_without_server))
           localCoroutine.launch {
             state.hide()
-            model.bottomSheetToPairDeviceState.show(state.deviceConfig!!)
+            model.bottomSheetToPairDeviceState.show(state.deviceName!!)
           }
         }
       )
@@ -354,9 +360,9 @@ private fun ComposedActionButtons(
         onClick = {
           localCoroutine.launch {
             lockButtonLoading = true
-            model.unlock(state.deviceConfig!!)
+            model.unlock(state.deviceName!!)
             delay(1000)
-            DeviceStateCenter.updateLockState(state.deviceConfig!!)
+            DeviceStateCenter.updateLockState(state.deviceName!!)
             lockButtonLoading = false
           }
         }
@@ -370,9 +376,9 @@ private fun ComposedActionButtons(
         onClick = {
           localCoroutine.launch {
             unlockButtonLoading = true
-            model.lock(state.deviceConfig!!)
+            model.lock(state.deviceName!!)
             delay(1000)
-            DeviceStateCenter.updateLockState(state.deviceConfig!!)
+            DeviceStateCenter.updateLockState(state.deviceName!!)
             unlockButtonLoading = false
           }
         }
@@ -384,7 +390,7 @@ private fun ComposedActionButtons(
         icon = Icons.Rounded.PowerSettingsNew,
         onClick = {
           localCoroutine.launch {
-            model.powerOff(state.deviceConfig!!, PowerOffAction.SHUTDOWN)
+            model.powerOff(state.deviceName!!, PowerOffAction.SHUTDOWN)
           }
         }
       )
@@ -395,7 +401,7 @@ private fun ComposedActionButtons(
         icon = Icons.Rounded.Bedtime,
         onClick = {
           localCoroutine.launch {
-            model.powerOff(state.deviceConfig!!, PowerOffAction.SLEEP)
+            model.powerOff(state.deviceName!!, PowerOffAction.SLEEP)
           }
         }
       )
@@ -406,7 +412,7 @@ private fun ComposedActionButtons(
         icon = Icons.Rounded.AcUnit,
         onClick = {
           localCoroutine.launch {
-            model.powerOff(state.deviceConfig!!, PowerOffAction.HIBERNATE)
+            model.powerOff(state.deviceName!!, PowerOffAction.HIBERNATE)
           }
         }
       )
@@ -417,7 +423,7 @@ private fun ComposedActionButtons(
         icon = Icons.Rounded.Refresh,
         onClick = {
           localCoroutine.launch {
-            model.powerOff(state.deviceConfig!!, PowerOffAction.REBOOT)
+            model.powerOff(state.deviceName!!, PowerOffAction.REBOOT)
           }
         }
       )
@@ -430,7 +436,7 @@ private fun ComposedActionButtons(
   ) {
     if (preferenceSettings?.dynamicPowerActions == false) {
       buttons.wake()
-      if (state.deviceConfig!!.token == null) {
+      if (deviceConfig!!.token == null) {
         buttons.pair()
       } else {
         buttons.lock()
@@ -446,7 +452,7 @@ private fun ComposedActionButtons(
           buttons.wake()
         } else {
           Column {
-            if (state.deviceConfig!!.token == null) {
+            if (deviceConfig!!.token == null) {
               buttons.pair()
             } else {
               CrossFlipHorizontal(deviceState?.locked == true) { locked ->

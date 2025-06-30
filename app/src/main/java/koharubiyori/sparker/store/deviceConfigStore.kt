@@ -9,7 +9,9 @@ import koharubiyori.sparker.DataStoreName
 import koharubiyori.sparker.Globals
 import koharubiyori.sparker.util.ProguardIgnore
 import koharubiyori.sparker.util.debugPrint
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import timber.log.Timber
 
@@ -23,6 +25,19 @@ object DeviceConfigStore {
   val deviceConfigs get() = dataStore.data.map {
     val array = it[dataStoreKeys.deviceConfig]?.let { Gson().fromJson(it, Array<DeviceConfig>::class.java) } ?: emptyArray()
     array.toList()
+  }
+
+  fun getConfigFlowByName(deviceName: String) = deviceConfigs.map { configs ->
+    configs.firstOrNull { it.name == deviceName }
+  }
+
+  fun getConfigFlowByNameOrNull(deviceName: String?): Flow<DeviceConfig?> {
+    if (deviceName == null) return flowOf(null)
+    return getConfigFlowByName(deviceName)
+  }
+
+  suspend fun getConfigByName(deviceName: String): DeviceConfig? {
+    return deviceConfigs.first().firstOrNull { it.name == deviceName }
   }
 
   private suspend fun writeConfig(value: List<DeviceConfig>) {

@@ -11,7 +11,7 @@ import kotlin.coroutines.CoroutineContext
 
 // Instance of CoroutineScopeState scoped
 class LocalCoroutineScopeState(dispatcher: CoroutineContext = Dispatchers.Main) {
-  private val coroutine = CoroutineScope(dispatcher)
+  val coroutine = CoroutineScope(dispatcher)
 
   @Composable
   fun Provider(content: @Composable () -> Unit) {

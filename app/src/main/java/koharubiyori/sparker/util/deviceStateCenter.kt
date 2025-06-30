@@ -35,21 +35,20 @@ object DeviceStateCenter {
     }
   }
 
-  private fun generateHostUrl(
-    deviceConfig: DeviceConfig? = null,
+  private suspend fun generateHostUrl(
+    deviceName: String? = null,
     deviceState: DeviceState? = null,
     hostName: String? = null,
     serverPort: Int? = null
   ): String? {
+    val deviceConfig = deviceName?.let { DeviceConfigStore.getConfigByName(it) }
     val finalHostName = hostName ?: deviceConfig?.hostName
     val finalServerPort = serverPort ?: deviceState?.serverPort
-
     return finalHostName?.let { "http://${it}:${finalServerPort ?: Constants.HOST_SERVER_PORT}" }
   }
 
-  private suspend fun testServer(deviceConfig: DeviceConfig?, deviceState: DeviceState?): Long {
-    val url = generateHostUrl(deviceConfig, deviceState) ?: return -1
-
+  private suspend fun testServer(deviceName: String?, deviceState: DeviceState?): Long {
+    val url = generateHostUrl(deviceName, deviceState) ?: return -1
     try {
       return measureTimeMillis {
         HostInfoApi.Companion.approach(url)
@@ -68,37 +67,37 @@ object DeviceStateCenter {
     val deviceTimeout = SettingsStore.preference.getValue {
       if (NetworkUtil.isLocalIP(ip)) localDeviceTimeout else removeDeviceTimeout
     }.first()
-
     val time = measureTimeMillis {
       InetAddress.getByName(ip).isReachable(deviceTimeout)
     }
-
     return@withContext if (time < deviceTimeout) time else -1
   }
 
-  suspend fun testDeviceConnectionState(deviceConfig: DeviceConfig) {
-    val state = _stateMap[deviceConfig.name] ?: return
+  suspend fun testDeviceConnectionState(deviceName: String) {
+    val state = _stateMap[deviceName] ?: return
+    val deviceConfig = DeviceConfigStore.getConfigByName(deviceName) ?: return
     val pingTestResult = testPing(deviceConfig.hostName)
-    val serverTestResult = testServer(deviceConfig, state)
-
+    val serverTestResult = testServer(deviceName, state)
     val newDeviceState = state.copy(
       pingTimeout = pingTestResult,
       serverTimeout = serverTestResult
     )
-    _stateMap[deviceConfig.name] = newDeviceState
-
-    if (newDeviceState.pingOnline && (!newDeviceState.serverOnline || newDeviceState.serverOnline && newDeviceState.paired == null)) refreshDeviceState(deviceConfig)
+    _stateMap[deviceName] = newDeviceState
+    if (newDeviceState.pingOnline && (!newDeviceState.serverOnline || newDeviceState.serverOnline && newDeviceState.paired == null)) {
+      refreshDeviceState(deviceName)
+    }
   }
 
   suspend fun testAllDevicesConnectionState() = coroutineScope {
     val deviceConfigs = DeviceConfigStore.deviceConfigs.first()
     _stateMap.entries.forEach {
       val foundItem = deviceConfigs.firstOrNull { deviceConfig -> deviceConfig.name == it.key } ?: return@forEach
-      launch { testDeviceConnectionState(foundItem) }
+      launch { testDeviceConnectionState(foundItem.name) }
     }
   }
 
-  suspend fun refreshDeviceState(deviceConfig: DeviceConfig) {
+  suspend fun refreshDeviceState(deviceName: String) {
+    val deviceConfig = DeviceConfigStore.getConfigByName(deviceName) ?: return
     val serverPort = tryGettingServicePortFromHostServer(deviceConfig.hostName)
     with(ActiveDeviceScope(deviceConfig, DeviceState(serverPort = serverPort))) {
       var paired: Boolean? = null
@@ -116,11 +115,9 @@ object DeviceStateCenter {
             }
             return@let null
           }
-
           throw ex
         }
       }
-
       val locked = serverPort?.let {
         try {
           val result = ActiveDeviceScope(deviceConfig, DeviceState(serverPort = serverPort)).run {
@@ -133,8 +130,7 @@ object DeviceStateCenter {
           null
         }
       }
-
-      _stateMap[deviceConfig.name] = (_stateMap[deviceConfig.name] ?: DeviceState()).copy(
+      _stateMap[deviceName] = (_stateMap[deviceName] ?: DeviceState()).copy(
         serverPort = serverPort,
         paired = paired,
         hibernateEnabled = basicInfo?.hibernateEnabled,
@@ -143,35 +139,35 @@ object DeviceStateCenter {
     }
   }
 
-  suspend fun registerDevice(deviceConfig: DeviceConfig) {
-    if (_stateMap.containsKey(deviceConfig.name)) return
-    _stateMap[deviceConfig.name] = DeviceState()
-    testDeviceConnectionState(deviceConfig)
+  suspend fun registerDevice(deviceName: String) {
+    if (_stateMap.containsKey(deviceName)) return
+    _stateMap[deviceName] = DeviceState()
+    testDeviceConnectionState(deviceName)
   }
 
   suspend fun registerAllDevices() = coroutineScope {
     val deviceConfigs = DeviceConfigStore.deviceConfigs.first()
     val jobs = deviceConfigs.map {
-      launch { registerDevice(it) }
+      launch { registerDevice(it.name) }
     }
-
     joinAll(*jobs.toTypedArray())
   }
 
-  fun unregisterDevice(deviceConfig: DeviceConfig) {
-    _stateMap.remove(deviceConfig.name)
+  fun unregisterDevice(deviceName: String) {
+    _stateMap.remove(deviceName)
   }
 
-  suspend fun <T> deviceScope(deviceConfig: DeviceConfig, run: suspend ActiveDeviceScope.() -> T): T {
-    return ActiveDeviceScope(deviceConfig, _stateMap[deviceConfig.name]!!).run { run() }
+  suspend fun <T> deviceScope(deviceName: String, run: suspend ActiveDeviceScope.() -> T): T {
+    val deviceConfig = DeviceConfigStore.getConfigByName(deviceName) ?: error("DeviceConfig not found")
+    return ActiveDeviceScope(deviceConfig, _stateMap[deviceName]!!).run { run() }
   }
 
-  suspend fun updateLockState(deviceConfig: DeviceConfig) {
-    val targetState = _stateMap[deviceConfig.name] ?: return
-
+  suspend fun updateLockState(deviceName: String) {
+    val targetState = _stateMap[deviceName] ?: return
+    val deviceConfig = DeviceConfigStore.getConfigByName(deviceName) ?: return
     val locked = try {
       if (targetState.paired == true) {
-        val result = deviceScope(deviceConfig) { powerApi.isLocked() }
+        val result = deviceScope(deviceName) { powerApi.isLocked() }
         result.locked
       } else null
     } catch (ex: Exception) {
@@ -179,7 +175,7 @@ object DeviceStateCenter {
       Timber.Forest.e(ex)
       null
     }
-    _stateMap[deviceConfig.name] = targetState.copy(locked = locked)
+    _stateMap[deviceName] = targetState.copy(locked = locked)
   }
 }
 

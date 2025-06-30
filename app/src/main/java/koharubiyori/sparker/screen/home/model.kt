@@ -19,6 +19,7 @@ import koharubiyori.sparker.screen.home.component.BottomSheetToPairDeviceState
 import koharubiyori.sparker.screen.settings.ClickAction
 import koharubiyori.sparker.screen.settings.PowerOffAction
 import koharubiyori.sparker.store.DeviceConfig
+import koharubiyori.sparker.store.DeviceConfigStore
 import koharubiyori.sparker.util.DeviceStateCenter
 import koharubiyori.sparker.store.SettingsStore
 import koharubiyori.sparker.util.LoadStatus
@@ -26,6 +27,7 @@ import koharubiyori.sparker.util.RemoteDevicePowerActions
 import koharubiyori.sparker.util.toast
 import koharubiyori.sparker.util.tryToastAsRequestException
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,8 +39,8 @@ class HomeScreenModel @Inject constructor() : ViewModel() {
   val bottomSheetToPairDeviceState = BottomSheetToPairDeviceState()
   var deviceRefreshStatus by mutableStateOf(LoadStatus.INITIAL)
 
-  fun testIsHostConnected(deviceConfig: DeviceConfig): Boolean {
-    val deviceState = DeviceStateCenter.stateMap[deviceConfig.name]!!
+  fun testIsHostConnected(deviceName: String): Boolean {
+    val deviceState = DeviceStateCenter.stateMap[deviceName]!!
     return when {
       !deviceState.pingOnline -> {
         toast(Globals.context.getString(R.string.s_device_offline))
@@ -56,14 +58,17 @@ class HomeScreenModel @Inject constructor() : ViewModel() {
     }
   }
 
-  suspend fun powerOn(deviceConfig: DeviceConfig) {
+  suspend fun powerOn(deviceName: String) {
+    val deviceConfig = DeviceConfigStore.getConfigByName(deviceName)!!
     if (deviceConfig.macAddress == null) {
       Globals.commonAlertDialog.show(CommonAlertDialogProps(
         leftButton = ButtonConfig(
           text = Globals.context.getString(R.string.go_to_edit),
           onClick = {
             bottomSheetForDeviceActionsState.hide()
-            bottomSheetToAddDeviceState.show(edit = deviceConfig)
+            localCoroutineScopeState.coroutine.launch { 
+              bottomSheetToAddDeviceState.show(deviceName)
+            }
           }
         ),
         content = {
@@ -73,14 +78,14 @@ class HomeScreenModel @Inject constructor() : ViewModel() {
       return
     }
 
-    RemoteDevicePowerActions.wake(deviceConfig)
+    RemoteDevicePowerActions.wake(deviceName)
     toast(Globals.context.getString(R.string.s_woke))
   }
 
 
-  suspend fun powerOff(deviceConfig: DeviceConfig, action: PowerOffAction? = null) {
+  suspend fun powerOff(deviceName: String, action: PowerOffAction? = null) {
     val preferenceSettings = SettingsStore.preference.getValue { this }.first()
-    val deviceState = DeviceStateCenter.stateMap[deviceConfig.name]!!
+    val deviceState = DeviceStateCenter.stateMap[deviceName]!!
     val finalAction = action ?: preferenceSettings.defaultPowerOffAction
     val actionName = Globals.context.getString(when (finalAction) {
       PowerOffAction.SHUTDOWN -> R.string.shutdown
@@ -89,7 +94,7 @@ class HomeScreenModel @Inject constructor() : ViewModel() {
       PowerOffAction.REBOOT -> R.string.reboot
     })
 
-    if (!testIsHostConnected(deviceConfig)) return
+    if (!testIsHostConnected(deviceName)) return
     if (finalAction == PowerOffAction.HIBERNATE && !deviceState.hibernateEnabled!!) {
       Globals.commonAlertDialog.showText(Globals.context.getString(R.string.s_disabled_hibernate_waring))
       return
@@ -97,15 +102,15 @@ class HomeScreenModel @Inject constructor() : ViewModel() {
     try {
       when (finalAction) {
         PowerOffAction.SHUTDOWN -> RemoteDevicePowerActions.shutdown(
-          deviceConfig = deviceConfig,
+          deviceName = deviceName,
           force = preferenceSettings.forceShutdown != 0,
           timeout = preferenceSettings.forceShutdown,
           hybridShutdown = preferenceSettings.fastBoot
         )
-        PowerOffAction.SLEEP -> RemoteDevicePowerActions.sleep(deviceConfig)
-        PowerOffAction.HIBERNATE -> RemoteDevicePowerActions.hibernate(deviceConfig)
+        PowerOffAction.SLEEP -> RemoteDevicePowerActions.sleep(deviceName)
+        PowerOffAction.HIBERNATE -> RemoteDevicePowerActions.hibernate(deviceName)
         PowerOffAction.REBOOT -> RemoteDevicePowerActions.shutdown(
-          deviceConfig = deviceConfig,
+          deviceName = deviceName,
           force = preferenceSettings.forceShutdown != 0,
           timeout = preferenceSettings.forceShutdown,
           hybridShutdown = preferenceSettings.fastBoot,
@@ -118,34 +123,34 @@ class HomeScreenModel @Inject constructor() : ViewModel() {
     }
   }
 
-  suspend fun lock(deviceConfig: DeviceConfig) {
-    if (!testIsHostConnected(deviceConfig)) return
+  suspend fun lock(deviceName: String) {
+    if (!testIsHostConnected(deviceName)) return
     try {
-      RemoteDevicePowerActions.lock(deviceConfig)
+      RemoteDevicePowerActions.lock(deviceName)
       toast(Globals.context.getString(R.string.s_locked))
     } catch (ex: Exception) {
       if (!ex.tryToastAsRequestException()) throw ex
     }
   }
 
-  suspend fun unlock(deviceConfig: DeviceConfig) {
-    if (!testIsHostConnected(deviceConfig)) return
+  suspend fun unlock(deviceName: String) {
+    if (!testIsHostConnected(deviceName)) return
     try {
-      RemoteDevicePowerActions.unlock(deviceConfig)
+      RemoteDevicePowerActions.unlock(deviceName)
       toast(Globals.context.getString(R.string.s_unlocked))
     } catch (ex: Exception) {
       if (!ex.tryToastAsRequestException()) throw ex
     }
   }
 
-  suspend fun handleItemClick(deviceConfig: DeviceConfig) {
+  suspend fun handleItemClick(deviceName: String) {
     val preferenceSettings = SettingsStore.preference.getValue { this }.first()
-    val deviceState = DeviceStateCenter.stateMap[deviceConfig.name]
+    val deviceState = DeviceStateCenter.stateMap[deviceName]
 
     when (preferenceSettings.clickAction) {
-      ClickAction.POWER_ON -> powerOn(deviceConfig)
-      ClickAction.POWER_OFF -> powerOff(deviceConfig)
-      ClickAction.TOGGLE -> if (deviceState?.pingOnline == true) powerOff(deviceConfig) else powerOn(deviceConfig)
+      ClickAction.POWER_ON -> powerOn(deviceName)
+      ClickAction.POWER_OFF -> powerOff(deviceName)
+      ClickAction.TOGGLE -> if (deviceState?.pingOnline == true) powerOff(deviceName) else powerOn(deviceName)
     }
   }
 
