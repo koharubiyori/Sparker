@@ -72,6 +72,7 @@ import koharubiyori.sparker.store.DeviceConfigStore
 import koharubiyori.sparker.store.SettingsStore
 import koharubiyori.sparker.util.DeviceStateCenter
 import koharubiyori.sparker.util.toast
+import koharubiyori.sparker.util.vibrate
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -98,8 +99,8 @@ fun BottomSheetForDeviceActions(
     Column(
       modifier = Modifier
         .fillMaxWidth()
-        .background(MaterialTheme.colorScheme.surface)
         .clip(MaterialTheme.shapes.large.copy(bottomStart = ZeroCornerSize, bottomEnd = ZeroCornerSize))
+        .background(MaterialTheme.colorScheme.surface)
         .padding(top = 15.dp)
         .padding(horizontal = 15.dp)
     ) {
@@ -168,7 +169,11 @@ private fun ComposedButton(
       .height(50.dp)
       .alpha(if (loading) 0.5f else 1f),
     enabled = enabled,
-    onClick = { if(!loading) onClick() }
+    onClick = {
+      if (loading) return@Button
+      vibrate()
+      onClick()
+    }
   ) {
     Box(
       contentAlignment = Alignment.Center
