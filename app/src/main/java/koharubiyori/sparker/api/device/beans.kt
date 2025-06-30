@@ -13,6 +13,7 @@ data class PairReq(
   val sessionId: String,
   val pairingCode: String,
   val username: String,
+  val domain: String,
   val password: String
 )
 

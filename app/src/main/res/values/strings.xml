@@ -24,6 +24,7 @@
     <string name="unlock">Unlock</string>
     <string name="lock">Lock</string>
     <string name="experimental">Experimental</string>
+    <string name="domain">Domain</string>
 
     <!-- Words(names are equal with their contents or translations) -->
     <string name="no_devices">No Devices</string>
@@ -86,6 +87,7 @@
     <string name="s_unauthorized_message">Unauthorized token. Please pair device again.</string>
     <string name="s_dynamic_power_actions_description">The power actions will be displayed based on the device state.</string>
     <string name="s_device_not_paired">The device is not paired</string>
+    <string name="s_domain_description">Optional, default to local</string>
 
     <!-- format strings -->
     <string name="f_after_seconds">After %1$ss</string>

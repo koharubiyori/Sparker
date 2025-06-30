@@ -136,6 +136,14 @@ fun BottomSheetToPairDevice(
         ref = state.textFieldRefs[TextFields.USERNAME]
       )
       ComposedTextField(
+        labelText = stringResource(R.string.domain),
+        value = state.domain,
+        placeholderText = stringResource(R.string.s_domain_description),
+        keyboardType = KeyboardType.Text,
+        onValueChange = { state.domain = it },
+        ref = state.textFieldRefs[TextFields.DOMAIN]
+      )
+      ComposedTextField(
         labelText = stringResource(R.string.password),
         value = state.password,
         keyboardType = KeyboardType.Password,
@@ -155,11 +163,13 @@ class BottomSheetToPairDeviceState {
 
   var pairingCode by mutableStateOf("")
   var username by mutableStateOf("")
+  var domain by mutableStateOf("")
   var password by mutableStateOf("")
 
   val textFieldRefs = mapOf(
     TextFields.PAIRING_CODE to Ref<VerifiableOutlinedTextFieldRef>(),
     TextFields.USERNAME to Ref(),
+    TextFields.DOMAIN to Ref(),
     TextFields.PASSWORD to Ref(),
   )
 
@@ -206,6 +216,7 @@ class BottomSheetToPairDeviceState {
           pairingCode = pairingCode,
           sessionId = androidId,
           username = username,
+          domain = domain,
           password = password
         ))
       }
@@ -230,6 +241,7 @@ class BottomSheetToPairDeviceState {
   enum class TextFields {
     PAIRING_CODE,
     USERNAME,
+    DOMAIN,
     PASSWORD,
   }
 }
